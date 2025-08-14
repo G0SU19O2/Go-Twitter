@@ -6,6 +6,23 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestRegisterInput_Sanitize(t *testing.T) {
+	input := RegisterInput{
+		Username:        " validuser ",
+		Email:           " Test@example.com ",
+		Password:        "password",
+		ConfirmPassword: "password",
+	}
+	want := RegisterInput{
+		Username:        "validuser",
+		Email:           "test@example.com",
+		Password:        "password",
+		ConfirmPassword: "password",
+	}
+	input.Sanitize()
+	require.Equal(t, want, input)
+}
+
 func TestRegisterInput_Validate(t *testing.T) {
 	testCases := []struct {
 		name  string
