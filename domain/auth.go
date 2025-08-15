@@ -43,5 +43,5 @@ func (as *AuthService) Register(ctx context.Context, input gotwitter.RegisterInp
 	if err != nil {
 		return gotwitter.AuthResponse{}, fmt.Errorf("failed to create user: %w", err)
 	}
-	return gotwitter.AuthResponse{AccessToken: "some-jwt-token"}, nil
+	return gotwitter.AuthResponse{AccessToken: "some-jwt-token", User: user}, nil
 }
