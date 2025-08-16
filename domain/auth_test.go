@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	gotwitter "github.com/G0SU19O2/Go-Twitter"
+	"github.com/G0SU19O2/Go-Twitter/faker"
 	"github.com/G0SU19O2/Go-Twitter/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -16,8 +17,8 @@ func TestAuthService_Register(t *testing.T) {
 	validInput := gotwitter.RegisterInput{
 		Username:        "testuser",
 		Email:           "test@example.com",
-		Password:        "password123",
-		ConfirmPassword: "password123",
+		Password:        "password",
+		ConfirmPassword: "password",
 	}
 	t.Run("can register", func(t *testing.T) {
 		ctx := context.Background()
@@ -88,16 +89,14 @@ func TestAuthService_Register(t *testing.T) {
 func TestAuthService_Login(t *testing.T) {
 	validInput := gotwitter.LoginInput{
 		Email:    "test@example.com",
-		Password: "password123",
+		Password: "password",
 	}
 	t.Run("can login", func(t *testing.T) {
 		ctx := context.Background()
 		userRepo := &mocks.MockUserRepo{}
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(validInput.Password), bcrypt.DefaultCost)
-		require.NoError(t, err)
-		userRepo.On("GetByEmail", mock.Anything, mock.Anything).Return(gotwitter.User{ID: "1902", Email: validInput.Email, Password: string(hashedPassword)}, nil)
+		userRepo.On("GetByEmail", mock.Anything, mock.Anything).Return(gotwitter.User{ID: "1902", Email: validInput.Email, Password: faker.Password}, nil)
 		service := NewAuthService(userRepo)
-		_, err = service.Login(ctx, validInput)
+		_, err := service.Login(ctx, validInput)
 		require.NoError(t, err)
 		userRepo.AssertExpectations(t)
 	})
@@ -105,7 +104,7 @@ func TestAuthService_Login(t *testing.T) {
 	t.Run("wrong password", func(t *testing.T) {
 		ctx := context.Background()
 		userRepo := &mocks.MockUserRepo{}
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("wrongpassword"), bcrypt.DefaultCost)
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("wrongpassword"), passwordCost)
 		require.NoError(t, err)
 		userRepo.On("GetByEmail", mock.Anything, mock.Anything).Return(gotwitter.User{ID: "1902", Email: validInput.Email, Password: string(hashedPassword)}, nil)
 		service := NewAuthService(userRepo)

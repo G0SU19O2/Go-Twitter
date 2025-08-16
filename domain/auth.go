@@ -6,8 +6,11 @@ import (
 	"fmt"
 
 	gotwitter "github.com/G0SU19O2/Go-Twitter"
+	"github.com/G0SU19O2/Go-Twitter/faker"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var passwordCost = bcrypt.DefaultCost
 
 type AuthService struct {
 	UserRepo gotwitter.UserRepo
@@ -34,12 +37,8 @@ func (as *AuthService) Register(ctx context.Context, input gotwitter.RegisterInp
 		Email:    input.Email,
 		Username: input.Username,
 	}
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return gotwitter.AuthResponse{}, fmt.Errorf("failed to hash password: %w", err)
-	}
-	user.Password = string(hashedPassword)
-	user, err = as.UserRepo.CreateUser(ctx, user)
+	user.Password = faker.Password
+	user, err := as.UserRepo.CreateUser(ctx, user)
 	if err != nil {
 		return gotwitter.AuthResponse{}, fmt.Errorf("failed to create user: %w", err)
 	}
