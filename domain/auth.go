@@ -45,3 +45,23 @@ func (as *AuthService) Register(ctx context.Context, input gotwitter.RegisterInp
 	}
 	return gotwitter.AuthResponse{AccessToken: "some-jwt-token", User: user}, nil
 }
+
+func (as *AuthService) Login(ctx context.Context, input gotwitter.LoginInput) (gotwitter.AuthResponse, error) {
+	input.Sanitize()
+	if err := input.Validate(); err != nil {
+		return gotwitter.AuthResponse{}, err
+	}
+	user, err := as.UserRepo.GetByEmail(ctx, input.Email)
+	if err != nil {
+		switch {
+		case errors.Is(err, gotwitter.ErrNotFound):
+			return gotwitter.AuthResponse{}, gotwitter.ErrBadCredentials
+		default:
+			return gotwitter.AuthResponse{}, err
+		}
+	}
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
+		return gotwitter.AuthResponse{}, gotwitter.ErrBadCredentials
+	}
+	return gotwitter.AuthResponse{AccessToken: "some-jwt-token", User: user}, nil
+}

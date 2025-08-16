@@ -48,3 +48,23 @@ func (input *RegisterInput) Validate() error {
 	}
 	return nil
 }
+
+type LoginInput struct {
+	Email    string
+	Password string
+}
+
+func (input *LoginInput) Sanitize() {
+	input.Email = strings.TrimSpace(input.Email)
+	input.Email = strings.ToLower(input.Email)
+}
+
+func (input *LoginInput) Validate() error {
+	if !EmailRegexp.MatchString(input.Email) {
+		return fmt.Errorf("%w: invalid email format", ErrValidation)
+	}
+	if len(input.Password) < 1 {
+		return fmt.Errorf("%w: password is required", ErrValidation)
+	}
+	return nil
+}
