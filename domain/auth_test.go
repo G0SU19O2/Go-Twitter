@@ -9,6 +9,7 @@ import (
 	"github.com/G0SU19O2/Go-Twitter/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func TestAuthService_Register(t *testing.T) {
@@ -80,6 +81,65 @@ func TestAuthService_Register(t *testing.T) {
 		userRepo.AssertNotCalled(t, "GetByUsername")
 		userRepo.AssertNotCalled(t, "GetByEmail")
 		userRepo.AssertNotCalled(t, "CreateUser")
+		userRepo.AssertExpectations(t)
+	})
+}
+
+func TestAuthService_Login(t *testing.T) {
+	validInput := gotwitter.LoginInput{
+		Email:    "test@example.com",
+		Password: "password123",
+	}
+	t.Run("can login", func(t *testing.T) {
+		ctx := context.Background()
+		userRepo := &mocks.MockUserRepo{}
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(validInput.Password), bcrypt.DefaultCost)
+		require.NoError(t, err)
+		userRepo.On("GetByEmail", mock.Anything, mock.Anything).Return(gotwitter.User{ID: "1902", Email: validInput.Email, Password: string(hashedPassword)}, nil)
+		service := NewAuthService(userRepo)
+		_, err = service.Login(ctx, validInput)
+		require.NoError(t, err)
+		userRepo.AssertExpectations(t)
+	})
+
+	t.Run("wrong password", func(t *testing.T) {
+		ctx := context.Background()
+		userRepo := &mocks.MockUserRepo{}
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("wrongpassword"), bcrypt.DefaultCost)
+		require.NoError(t, err)
+		userRepo.On("GetByEmail", mock.Anything, mock.Anything).Return(gotwitter.User{ID: "1902", Email: validInput.Email, Password: string(hashedPassword)}, nil)
+		service := NewAuthService(userRepo)
+		_, err = service.Login(ctx, validInput)
+		require.ErrorIs(t, err, gotwitter.ErrBadCredentials)
+		userRepo.AssertExpectations(t)
+	})
+
+	t.Run("email not found", func(t *testing.T) {
+		ctx := context.Background()
+		userRepo := &mocks.MockUserRepo{}
+		userRepo.On("GetByEmail", mock.Anything, mock.Anything).Return(gotwitter.User{}, gotwitter.ErrNotFound)
+		service := NewAuthService(userRepo)
+		_, err := service.Login(ctx, validInput)
+		require.ErrorIs(t, err, gotwitter.ErrBadCredentials)
+		userRepo.AssertExpectations(t)
+	})
+
+	t.Run("get user by email error", func(t *testing.T) {
+		ctx := context.Background()
+		userRepo := &mocks.MockUserRepo{}
+		userRepo.On("GetByEmail", mock.Anything, mock.Anything).Return(gotwitter.User{}, errors.New("some error"))
+		service := NewAuthService(userRepo)
+		_, err := service.Login(ctx, validInput)
+		require.Error(t, err)
+		userRepo.AssertExpectations(t)
+	})
+
+	t.Run("invalid input", func(t *testing.T) {
+		ctx := context.Background()
+		userRepo := &mocks.MockUserRepo{}
+		service := NewAuthService(userRepo)
+		_, err := service.Login(ctx, gotwitter.LoginInput{Email: "bob", Password: ""})
+		require.ErrorIs(t, err, gotwitter.ErrValidation)
 		userRepo.AssertExpectations(t)
 	})
 }
