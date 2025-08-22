@@ -13,6 +13,10 @@ type UserRepo struct {
 	DB *DB
 }
 
+func NewUserRepo(db *DB) *UserRepo {
+	return &UserRepo{DB: db}
+}
+
 func (r *UserRepo) CreateUser(ctx context.Context, user gotwitter.User) (gotwitter.User, error) {
 	tx, err := r.DB.Pool.Begin(ctx)
 	if err != nil {
@@ -61,3 +65,4 @@ func (r *UserRepo) GetByEmail(ctx context.Context, email string) (gotwitter.User
 	}
 	return u, nil
 }
+
