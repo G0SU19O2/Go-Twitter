@@ -8,14 +8,15 @@ import (
 	"testing"
 
 	gotwitter "github.com/G0SU19O2/Go-Twitter"
+	"github.com/G0SU19O2/Go-Twitter/faker"
 	"github.com/G0SU19O2/Go-Twitter/test_helpers"
 	"github.com/stretchr/testify/require"
 )
 
 func TestIntegrationAuthService_Register(t *testing.T) {
 	validInput := gotwitter.RegisterInput{
-		Username:        "testuser",
-		Email:           "test@example.com",
+		Username:        faker.UserName(),
+		Email:           faker.Email(),
 		Password:        "password",
 		ConfirmPassword: "password",
 	}
