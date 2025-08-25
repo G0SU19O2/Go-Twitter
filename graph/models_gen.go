@@ -2,6 +2,10 @@
 
 package graph
 
+import (
+	"time"
+)
+
 type AuthResponse struct {
 	AccessToken string `json:"accessToken"`
 	User        *User  `json:"user"`
@@ -26,8 +30,8 @@ type RegisterInput struct {
 }
 
 type User struct {
-	ID       string `json:"id"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	CreateAt string `json:"createAt"`
+	ID       string    `json:"id"`
+	Username string    `json:"username"`
+	Email    string    `json:"email"`
+	CreateAt time.Time `json:"createAt"`
 }

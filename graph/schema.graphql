@@ -4,7 +4,7 @@ type User {
     id: ID!
     username: String!
     email: String!
-    createAt: String!
+    createAt: Time!
 }
 type AuthResponse {
     accessToken: String!
